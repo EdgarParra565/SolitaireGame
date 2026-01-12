@@ -1,0 +1,736 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BasicKlondike.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">easygo</a> &gt; <a href="index.source.html" class="el_package">klondike.model.hw02</a> &gt; <span class="el_source">BasicKlondike.java</span></div><h1>BasicKlondike.java</h1><pre class="source lang-java linenums">package klondike.model.hw02;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+/**
+ * A class that implements the KlondikeModel interface with ValueCard type objects.
+ * BasicKlondike provides functions that would allow one to play a game of solitaire.
+ * ValueCard type for the implementation.
+ */
+public class BasicKlondike implements KlondikeModel&lt;ValueCard&gt; {
+  private List&lt;ValueCard&gt; deck;
+  private List&lt;List&lt;ValueCard&gt;&gt; piles;
+  private List&lt;List&lt;ValueCard&gt;&gt; foundations;
+  private List&lt;ValueCard&gt; hand;
+  private List&lt;ValueCard&gt; drawDeck;
+  private boolean gameStart;
+  private int numDraw;
+  /*
+  cannot run getFirst(),getLast(),removeFirst(), 
+  or removeLast() even though intellij wants me to
+  subList function List&lt;E&gt;
+  subList(int fromIndex, int toIndex)
+  Returns a view of the portion of this list
+  between the specified fromIndex, inclusive, and toIndex, exclusive.
+  stream() lambdas for maps
+   */
+
+  /**
+   * Constructor that sets the fields.
+   */
+<span class="nc" id="L38">  public BasicKlondike() {</span>
+<span class="nc" id="L39">    this.deck = new ArrayList&lt;ValueCard&gt;();</span>
+<span class="nc" id="L40">    this.piles = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L41">    this.foundations = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L42">    this.hand = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L43">    this.drawDeck = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L44">    this.gameStart = false;</span>
+<span class="nc" id="L45">    this.numDraw = 0;</span>
+<span class="nc" id="L46">  }</span>
+
+  /**
+   * Return a valid and complete deck of cards for a game of Klondike.
+   * There is no restriction imposed on the ordering of these cards in the deck.
+   * The validity of the deck is determined by the rules of the specific game in
+   * the classes implementing this interface.  This method may be called as often
+   * as desired.
+   *
+   * @return the deck of cards as a list
+   */
+  @Override
+  public List&lt;ValueCard&gt; createNewDeck() {
+<span class="nc" id="L59">    List&lt;ValueCard&gt; newDeck = new ArrayList&lt;ValueCard&gt;();</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">    for (PossibleRank rank : PossibleRank.values()) {</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">      for (PossibleSuits suit : PossibleSuits.values()) {</span>
+<span class="nc" id="L62">        newDeck.add(new ValueCard(suit, rank));</span>
+      }
+    }
+<span class="nc" id="L65">    this.deck = new ArrayList&lt;&gt;(newDeck);</span>
+<span class="nc" id="L66">    return newDeck;</span>
+  }
+
+  /**
+   * Deal a new game of Klondike.
+   * The cards to be used and their order are specified by the the given deck,
+   * unless the {@code shuffle} parameter indicates the order should be ignored.&lt;/p&gt;
+   *
+   * &lt;p&gt;This method first verifies that the deck is valid. It deals cards in rows
+   * (left-to-right, top-to-bottom) into the characteristic cascade shape
+   * with the specified number of rows, followed by (at most) the specified number of
+   * draw cards. When {@code shuffle} is {@code false}, the {@code deck} must be used in order and
+   * the 0th card in {@code deck} is used as the first card dealt.
+   * There will be as many foundation piles as there are aces in the deck.&lt;/p&gt;
+   *
+   * &lt;p&gt;A valid deck must consist cards that can be grouped into equal-length,
+   * consecutive runs of cards (each one starting at an Ace, and each of a single suit).&lt;/p&gt;
+   *
+   * &lt;p&gt;This method should have no side effects other than configuring this model instance,
+   * and should work for any valid arguments.&lt;/p&gt;
+   *
+   * @param deck     the deck to be dealt
+   * @param shuffle  if {@code false}, use the order as given by {@code deck},
+   *                 otherwise use a randomly shuffled order
+   * @param numPiles number of piles to be dealt
+   * @param numDraw  maximum number of draw cards available at a time
+   * @throws IllegalStateException    if the game has already started
+   * @throws IllegalArgumentException if the deck is null or invalid,
+   *                                  a full cascade cannot be dealt with the given sizes,
+   *                                  or another input is invalid
+   */
+  @Override
+  public void startGame(List&lt;ValueCard&gt; deck, boolean shuffle, int numPiles, int numDraw)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc bnc" id="L100" title="All 2 branches missed.">    if (gameStart) {</span>
+<span class="nc" id="L101">      throw new IllegalStateException(&quot;IllegalStateException&quot;);</span>
+    }
+<span class="nc bnc" id="L103" title="All 2 branches missed.">    if (!checkingValidDecks(deck)) {</span>
+<span class="nc" id="L104">      throw new IllegalArgumentException(&quot;Decks are invalid&quot;);</span>
+    }
+<span class="nc" id="L106">    paramLessCheck(numPiles, 1);</span>
+    //paramLessCheck(numDraw, 0);
+<span class="nc" id="L108">    paramLessCheck(numDraw, 1);</span>
+<span class="nc" id="L109">    paramLessCheck(deck.size(), numDraw);</span>
+<span class="nc" id="L110">    int neededCards = (numPiles * (numPiles + 1)) / 2;</span>
+<span class="nc" id="L111">    paramLessCheck(deck.size(), neededCards);</span>
+<span class="nc" id="L112">    gameStart = true;</span>
+<span class="nc" id="L113">    List&lt;ValueCard&gt; change = new ArrayList&lt;&gt;(deck);</span>
+<span class="nc bnc" id="L114" title="All 2 branches missed.">    if (shuffle) {</span>
+<span class="nc" id="L115">      Collections.shuffle(change);</span>
+    }
+<span class="nc" id="L117">    this.numDraw = numDraw;</span>
+<span class="nc" id="L118">    this.piles.clear();</span>
+<span class="nc" id="L119">    this.foundations.clear();</span>
+<span class="nc" id="L120">    this.hand.clear();</span>
+<span class="nc" id="L121">    this.drawDeck.clear();</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">    for (int pile = 0; pile &lt; numPiles; pile++) {</span>
+<span class="nc" id="L123">      piles.add(new ArrayList&lt;&gt;());</span>
+    }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">    for (int rows = 0; rows &lt; numPiles; rows++) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">      for (int columns = rows; columns &lt; numPiles; columns++) {</span>
+<span class="nc" id="L127">        piles.get(columns).add(change.remove(0));</span>
+      }
+    }
+<span class="nc" id="L130">    drawDeck.addAll(change);</span>
+<span class="nc" id="L131">    addCardHand();</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">    for (int foundationCard = 0; foundationCard &lt; (deck.size() / 13); foundationCard++) {</span>
+<span class="nc" id="L133">      foundations.add(new ArrayList&lt;&gt;());</span>
+    }
+<span class="nc" id="L135">  }</span>
+
+  /**
+   * Helper to add a card to the hand from the deck.
+   * Only adds card if drawDeck is not empty and will only add however
+   * many you are allowed via numDraw.
+   */
+  private void addCardHand() {
+<span class="nc bnc" id="L143" title="All 4 branches missed.">    while (hand.size() &lt; numDraw &amp;&amp; !drawDeck.isEmpty()) {</span>
+<span class="nc" id="L144">      hand.add(drawDeck.remove(0));</span>
+    }
+<span class="nc" id="L146">  }</span>
+
+  /**
+   * Checks the deck for complete suits.
+   * Returns false if suit is incomplete.
+   *
+   * @param deck deck being checked if it can be used in klondike.
+   * @return boolean if the deck can be used.
+   */
+  private boolean checkingValidDecks(List&lt;ValueCard&gt; deck) {
+<span class="nc bnc" id="L156" title="All 4 branches missed.">    if (deck == null || deck.isEmpty()) {</span>
+<span class="nc" id="L157">      return false;</span>
+    }
+<span class="nc bnc" id="L159" title="All 2 branches missed.">    for (ValueCard card : deck) {</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">      if (card == null) {</span>
+<span class="nc" id="L161">        return false;</span>
+      }
+<span class="nc" id="L163">    }</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">    boolean ace = deck.stream().anyMatch(card -&gt; card.possibleRank == PossibleRank.Ace);</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">    if (!ace) {</span>
+<span class="nc" id="L166">      return false;</span>
+    }
+<span class="nc" id="L168">    Map&lt;PossibleSuits, Set&lt;Integer&gt;&gt; map1 = new HashMap&lt;&gt;();</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">    for (ValueCard card : deck) {</span>
+<span class="nc" id="L170">      map1.computeIfAbsent(card.possibleSuits, k -&gt; new HashSet&lt;&gt;())</span>
+<span class="nc" id="L171">          .add(card.possibleRank.getNumber());</span>
+<span class="nc" id="L172">    }</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">    for (Set&lt;Integer&gt; set : map1.values()) {</span>
+<span class="nc" id="L174">      int min = set.stream().mapToInt(i -&gt; i).min().orElse(1);</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">      if (min != 1) {</span>
+<span class="nc" id="L176">        return false;</span>
+      }
+<span class="nc" id="L178">      int max = set.stream().mapToInt(i -&gt; i).max().orElse(13);</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">      for (int gapCheck = min; gapCheck &lt;= max; gapCheck++) {</span>
+<span class="nc bnc" id="L180" title="All 2 branches missed.">        if (!set.contains(gapCheck)) {</span>
+<span class="nc" id="L181">          return false;</span>
+        }
+      }
+<span class="nc" id="L184">    }</span>
+<span class="nc" id="L185">    return true;</span>
+  }
+
+  /**
+   * Helper method that checks game state.
+   * Throws exception if start game has not yet been run.
+   */
+  private void gameInProgress() {
+<span class="nc bnc" id="L193" title="All 2 branches missed.">    if (!gameStart) {</span>
+<span class="nc" id="L194">      throw new IllegalStateException(&quot;Game has not started&quot;);</span>
+    }
+<span class="nc" id="L196">  }</span>
+
+  /**
+   * Helper that checks Illegal Argument Exception using less than.
+   * Throws Argument if parameter one is less than param two and lets
+   * user know that parameters are invalid.
+   *
+   * @param param1 integer that has to be less than param2.
+   * @param param2 integer that had to be greater than param1.
+   */
+  private void paramLessCheck(int param1, int param2) {
+<span class="nc bnc" id="L207" title="All 2 branches missed.">    if (param1 &lt; param2) {</span>
+<span class="nc" id="L208">      throw new IllegalArgumentException(&quot;Illegal Argument Exception&quot;);</span>
+    }
+<span class="nc" id="L210">  }</span>
+
+  /**
+   * Helper that checks Illegal Argument Exception using less than or equal to.
+   * Throws Argument if parameter one is less or equal to param two and lets
+   * user know that parameters are invalid.
+   *
+   * @param param1 integer that has to be less than param2.
+   * @param param2 integer that had to be greater than param1.
+   */
+  private void paramLessEqualCheck(int param1, int param2) {
+<span class="nc bnc" id="L221" title="All 2 branches missed.">    if (param1 &lt;= param2) {</span>
+<span class="nc" id="L222">      throw new IllegalArgumentException(&quot;Illegal Argument Exception&quot;);</span>
+    }
+<span class="nc" id="L224">  }</span>
+
+  /**
+   * Helper that checks Illegal Argument Exception using .isEmpty().
+   * Throws State Exception if List is empty when helper is called.
+   *
+   * @param any any arrayList field checking if it has valueCards.
+   */
+  private void emptyCheck(List&lt;ValueCard&gt; any) {
+<span class="nc bnc" id="L233" title="All 2 branches missed.">    if (any.isEmpty()) {</span>
+<span class="nc" id="L234">      throw new IllegalStateException(&quot;Illegal State Exception&quot;);</span>
+    }
+<span class="nc" id="L236">  }</span>
+
+  /**
+   * Moves the requested number of cards from the source pile to the destination pile,
+   * if allowable by the rules of the game.
+   *
+   * @param srcPile  the 0-based index (from the left) of the pile to be moved
+   * @param numCards how many cards to be moved from that pile
+   * @param destPile the 0-based index (from the left) of the destination pile for the moved cards
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if either pile number is invalid, if the pile numbers are
+   *                                  the same, or there are not enough cards to move from the
+   *                                  srcPile to the destPile (i.e. the move is not physically
+   *                                  possible)
+   * @throws IllegalStateException    if the move is not allowable (i.e. the move is not logically
+   *                                  possible)
+   */
+  @Override
+  public void movePile(int srcPile, int numCards, int destPile)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L256">    gameInProgress();</span>
+<span class="nc" id="L257">    paramLessCheck(srcPile, 0);</span>
+<span class="nc" id="L258">    paramLessEqualCheck(piles.size(), srcPile);</span>
+<span class="nc" id="L259">    paramLessCheck(destPile, 0);</span>
+<span class="nc" id="L260">    paramLessEqualCheck(piles.size(), destPile);</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">    if (srcPile == destPile) {</span>
+<span class="nc" id="L262">      throw new IllegalArgumentException(&quot;Illegal Argument Exception&quot;);</span>
+    }
+<span class="nc" id="L264">    paramLessCheck(numCards, 1);</span>
+<span class="nc" id="L265">    List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+<span class="nc" id="L266">    List&lt;ValueCard&gt; dest = piles.get(destPile);</span>
+<span class="nc" id="L267">    paramLessCheck(src.size(), numCards);</span>
+<span class="nc" id="L268">    ValueCard srcCard = src.get(src.size() - numCards);</span>
+<span class="nc bnc" id="L269" title="All 2 branches missed.">    if (dest.isEmpty()) {</span>
+<span class="nc bnc" id="L270" title="All 2 branches missed.">      if (srcCard.possibleRank != PossibleRank.King) {</span>
+<span class="nc" id="L271">        throw new IllegalStateException(&quot;Only King can be moved&quot;);</span>
+      }
+    } else {
+<span class="nc" id="L274">      ValueCard destCard = dest.get(dest.size() - 1);</span>
+<span class="nc bnc" id="L275" title="All 2 branches missed.">      if (srcCard.possibleRank.getNumber() != destCard.possibleRank.getNumber() - 1</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">          || !oppositeColorCheck(srcCard.possibleSuits.getSymbol(),</span>
+<span class="nc" id="L277">          destCard.possibleSuits.getSymbol())) {</span>
+<span class="nc" id="L278">        throw new IllegalStateException(&quot;Cannot place card&quot;);</span>
+      }
+    }
+<span class="nc" id="L281">    List&lt;ValueCard&gt; card = new ArrayList&lt;&gt;(src.subList(src.size() - numCards, src.size()));</span>
+<span class="nc" id="L282">    dest.addAll(card);</span>
+<span class="nc bnc" id="L283" title="All 2 branches missed.">    for (int value = 0; value &lt; numCards; value++) {</span>
+<span class="nc" id="L284">      src.remove(src.size() - 1);</span>
+    }
+<span class="nc" id="L286">  }</span>
+
+  /**
+   * Moves the topmost draw-card to the destination pile.  If no draw cards remain, reveal the next
+   * available draw cards.
+   *
+   * @param destPile the 0-based index (from the left) of the destination pile for the card
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if destination pile number is invalid
+   * @throws IllegalStateException    if there are no draw cards, or if the move is not allowable
+   */
+  @Override
+  public void moveDraw(int destPile) throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L299">    gameInProgress();</span>
+<span class="nc" id="L300">    emptyCheck(hand);</span>
+<span class="nc" id="L301">    paramLessCheck(destPile, 0);</span>
+<span class="nc" id="L302">    paramLessEqualCheck(piles.size(), destPile);</span>
+<span class="nc" id="L303">    ValueCard card = hand.get(0);</span>
+<span class="nc" id="L304">    List&lt;ValueCard&gt; dest = piles.get(destPile);</span>
+<span class="nc bnc" id="L305" title="All 2 branches missed.">    if (dest.isEmpty()) {</span>
+<span class="nc bnc" id="L306" title="All 2 branches missed.">      if (card.possibleRank != PossibleRank.King) {</span>
+<span class="nc" id="L307">        throw new IllegalStateException(&quot;King only card that can be moved&quot;);</span>
+      }
+    } else {
+<span class="nc" id="L310">      ValueCard topCard = dest.get(dest.size() - 1);</span>
+<span class="nc bnc" id="L311" title="All 2 branches missed.">      if (card.possibleRank.getNumber() != topCard.possibleRank.getNumber() - 1</span>
+<span class="nc bnc" id="L312" title="All 2 branches missed.">          || !oppositeColorCheck(card.possibleSuits.getSymbol(),</span>
+<span class="nc" id="L313">          topCard.possibleSuits.getSymbol())) {</span>
+<span class="nc" id="L314">        throw new IllegalStateException(&quot;InvalidState&quot;);</span>
+      }
+    }
+<span class="nc" id="L317">    dest.add(card);</span>
+<span class="nc" id="L318">    hand.remove(0);</span>
+<span class="nc" id="L319">    addCardHand();</span>
+<span class="nc" id="L320">  }</span>
+
+  /**
+   * Moves the top card of the given pile to the requested foundation pile.
+   *
+   * @param srcPile        the 0-based index (from the left) of the pile to move a card
+   * @param foundationPile the 0-based index (from the left) of the foundation pile to place card
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if either pile number is invalid
+   * @throws IllegalStateException    if the source pile is empty or if the move is not allowable
+   */
+  @Override
+  public void moveToFoundation(int srcPile, int foundationPile)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L334">    gameInProgress();</span>
+<span class="nc" id="L335">    paramLessCheck(srcPile, 0);</span>
+<span class="nc" id="L336">    paramLessEqualCheck(piles.size(), srcPile);</span>
+<span class="nc" id="L337">    paramLessCheck(foundationPile, 0);</span>
+<span class="nc" id="L338">    paramLessEqualCheck(foundations.size(), foundationPile);</span>
+<span class="nc" id="L339">    List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+    //paramLessCheck(src.size(), foundationPile);
+<span class="nc" id="L341">    emptyCheck(src);</span>
+<span class="nc" id="L342">    ValueCard card = src.get(src.size() - 1);</span>
+<span class="nc" id="L343">    List&lt;ValueCard&gt; foundation = foundations.get(foundationPile);</span>
+<span class="nc bnc" id="L344" title="All 2 branches missed.">    if (!canPlaceFoundationCheck(card, foundation)) {</span>
+<span class="nc" id="L345">      throw new IllegalStateException(&quot;Card cannot be moved to foundation&quot;);</span>
+    }
+<span class="nc" id="L347">    foundation.add(card);</span>
+<span class="nc" id="L348">    src.remove(src.size() - 1);</span>
+<span class="nc" id="L349">  }</span>
+
+  /**
+   * Moves the topmost draw-card directly to a foundation pile.
+   *
+   * @param foundationPile the 0-based index (from the left) of the foundation pile to place card
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if the foundation pile number is invalid
+   * @throws IllegalStateException    if there are no draw cards or if the move is not allowable
+   */
+  @Override
+  public void moveDrawToFoundation(int foundationPile)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L362">    gameInProgress();</span>
+<span class="nc bnc" id="L363" title="All 4 branches missed.">    if (hand.isEmpty() &amp;&amp; drawDeck.isEmpty()) {</span>
+<span class="nc" id="L364">      throw new IllegalStateException(&quot;IllegalStateException&quot;);</span>
+    }
+<span class="nc bnc" id="L366" title="All 2 branches missed.">    if (hand.isEmpty()) {</span>
+<span class="nc" id="L367">      addCardHand();</span>
+<span class="nc bnc" id="L368" title="All 2 branches missed.">      if (hand.isEmpty()) {</span>
+<span class="nc" id="L369">        throw new IllegalStateException(&quot;IllegalStateException&quot;);</span>
+      }
+    }
+    /*
+    paramLessCheck(foundationPile, 0);
+    paramLessEqualCheck(foundations.size(), foundationPile);
+     */
+<span class="nc bnc" id="L376" title="All 4 branches missed.">    if (foundationPile &lt; 0 || foundationPile &gt;= foundations.size()) {</span>
+<span class="nc" id="L377">      throw new IllegalArgumentException(&quot;Illegal Argument Exception&quot;);</span>
+    }
+    //emptyCheck(hand);
+<span class="nc" id="L380">    ValueCard card = hand.get(0);</span>
+<span class="nc" id="L381">    List&lt;ValueCard&gt; foundation = foundations.get(foundationPile);</span>
+    //moveDrawTOFoundation with Legal Moves 0/2 here
+<span class="nc bnc" id="L383" title="All 2 branches missed.">    if (!canPlaceFoundationCheck(card, foundation)) {</span>
+<span class="nc" id="L384">      throw new IllegalStateException(&quot;Foundation only card that can be moved&quot;);</span>
+    }
+<span class="nc" id="L386">    foundation.add(card);</span>
+<span class="nc" id="L387">    hand.remove(0);</span>
+<span class="nc bnc" id="L388" title="All 2 branches missed.">    if (!drawDeck.isEmpty()) {</span>
+<span class="nc" id="L389">      addCardHand();</span>
+    }
+<span class="nc" id="L391">  }</span>
+
+  /**
+   * Discards the topmost draw-card.
+   *
+   * @throws IllegalStateException if the game hasn't been started yet
+   * @throws IllegalStateException if move is not allowable
+   */
+  @Override
+  public void discardDraw() throws IllegalStateException {
+<span class="nc" id="L401">    gameInProgress();</span>
+<span class="nc" id="L402">    emptyCheck(hand);</span>
+<span class="nc" id="L403">    drawDeck.add(hand.remove(0));</span>
+<span class="nc" id="L404">    addCardHand();</span>
+<span class="nc" id="L405">  }</span>
+
+  /**
+   * Returns the number of rows currently in the game.
+   *
+   * @return the height of the current table of cards
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public int getNumRows() throws IllegalStateException {
+<span class="nc" id="L415">    gameInProgress();</span>
+<span class="nc" id="L416">    int numRows = 0;</span>
+<span class="nc bnc" id="L417" title="All 2 branches missed.">    for (List&lt;ValueCard&gt; row : piles) {</span>
+<span class="nc" id="L418">      numRows = Math.max(numRows, row.size());</span>
+<span class="nc" id="L419">    }</span>
+<span class="nc" id="L420">    return numRows;</span>
+  }
+
+  /**
+   * Returns the number of piles for this game.
+   *
+   * @return the number of piles
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public int getNumPiles() throws IllegalStateException {
+<span class="nc" id="L431">    gameInProgress();</span>
+<span class="nc" id="L432">    return piles.size();</span>
+  }
+
+  /**
+   * Returns the maximum number of visible cards in the draw pile.
+   *
+   * @return the number of visible cards in the draw pile
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public int getNumDraw() throws IllegalStateException {
+<span class="nc" id="L443">    gameInProgress();</span>
+<span class="nc" id="L444">    return numDraw;</span>
+  }
+
+  /**
+   * Signal if the game is over or not.  A game is over if there are no more
+   * possible moves to be made, or draw cards to be used (or discarded).
+   *
+   * @return true if game is over, false otherwise
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public boolean isGameOver() throws IllegalStateException {
+<span class="nc" id="L456">    gameInProgress();</span>
+<span class="nc" id="L457">    boolean gameComplete = true;</span>
+<span class="nc bnc" id="L458" title="All 2 branches missed.">    for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L459" title="All 2 branches missed.">      if (foundation.size() != 13) {</span>
+<span class="nc" id="L460">        gameComplete = false;</span>
+<span class="nc" id="L461">        break;</span>
+      }
+<span class="nc" id="L463">    }</span>
+<span class="nc bnc" id="L464" title="All 2 branches missed.">    if (gameComplete) {</span>
+<span class="nc" id="L465">      return true;</span>
+    }
+<span class="nc bnc" id="L467" title="All 2 branches missed.">    if (!availableMove()) {</span>
+<span class="nc" id="L468">      return true;</span>
+    }
+<span class="nc bnc" id="L470" title="All 4 branches missed.">    return hand.isEmpty() &amp;&amp; drawDeck.isEmpty();</span>
+  }
+
+  /**
+   * Helper to check if any move can still be made in the game.
+   *
+   * @return boolean checking if a move can be made.
+   */
+  private boolean availableMove() {
+<span class="nc bnc" id="L479" title="All 2 branches missed.">    for (int srcPile = 0; srcPile &lt; piles.size(); srcPile++) {</span>
+<span class="nc" id="L480">      List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+<span class="nc bnc" id="L481" title="All 2 branches missed.">      if (src.isEmpty()) {</span>
+<span class="nc" id="L482">        continue;</span>
+      }
+<span class="nc" id="L484">      ValueCard card = src.get(src.size() - 1);</span>
+<span class="nc bnc" id="L485" title="All 2 branches missed.">      for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L486" title="All 2 branches missed.">        if (canPlaceFoundationCheck(card, foundation)) {</span>
+<span class="nc" id="L487">          return true;</span>
+        }
+<span class="nc" id="L489">      }</span>
+    }
+<span class="nc bnc" id="L491" title="All 2 branches missed.">    for (int srcPile = 0; srcPile &lt; piles.size(); srcPile++) {</span>
+<span class="nc" id="L492">      List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+<span class="nc bnc" id="L493" title="All 2 branches missed.">      if (src.isEmpty()) {</span>
+<span class="nc" id="L494">        continue;</span>
+      }
+<span class="nc" id="L496">      ValueCard card = src.get(src.size() - 1);</span>
+<span class="nc bnc" id="L497" title="All 2 branches missed.">      for (int destPile = 0; destPile &lt; piles.size(); destPile++) {</span>
+<span class="nc bnc" id="L498" title="All 2 branches missed.">        if (srcPile == destPile) {</span>
+<span class="nc" id="L499">          continue;</span>
+        }
+<span class="nc" id="L501">        List&lt;ValueCard&gt; dest = piles.get(destPile);</span>
+<span class="nc bnc" id="L502" title="All 2 branches missed.">        if (dest.isEmpty()) {</span>
+<span class="nc bnc" id="L503" title="All 2 branches missed.">          if (card.possibleRank == PossibleRank.King) {</span>
+<span class="nc" id="L504">            return true;</span>
+          }
+        } else {
+<span class="nc" id="L507">          ValueCard destCard = dest.get(dest.size() - 1);</span>
+<span class="nc bnc" id="L508" title="All 2 branches missed.">          if (card.possibleRank.getNumber() == destCard.possibleRank.getNumber() - 1</span>
+<span class="nc bnc" id="L509" title="All 2 branches missed.">              &amp;&amp; oppositeColorCheck(card.possibleSuits.getSymbol(),</span>
+<span class="nc" id="L510">              destCard.possibleSuits.getSymbol())) {</span>
+<span class="nc" id="L511">            return true;</span>
+          }
+        }
+      }
+    }
+<span class="nc bnc" id="L516" title="All 2 branches missed.">    if (handDeckChecker()) {</span>
+<span class="nc" id="L517">      return true;</span>
+    }
+<span class="nc" id="L519">    return false;</span>
+  }
+
+  /**
+   * Helper for available move. Handles hand and deck checks for available moves.
+   *
+   * @return a boolean if an available move can be made from the deck or hand.
+   */
+  private boolean handDeckChecker() {
+<span class="nc bnc" id="L528" title="All 2 branches missed.">    if (!hand.isEmpty()) {</span>
+<span class="nc bnc" id="L529" title="All 2 branches missed.">      for (int hands = 0; hands &lt; hand.size(); hands++) {</span>
+<span class="nc" id="L530">        ValueCard drawCard = hand.get(hands);</span>
+<span class="nc bnc" id="L531" title="All 2 branches missed.">        for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L532" title="All 2 branches missed.">          if (canPlaceFoundationCheck(drawCard, foundation)) {</span>
+<span class="nc" id="L533">            return true;</span>
+          }
+<span class="nc" id="L535">        }</span>
+<span class="nc bnc" id="L536" title="All 2 branches missed.">        for (List&lt;ValueCard&gt; pile : piles) {</span>
+<span class="nc bnc" id="L537" title="All 2 branches missed.">          if (pile.isEmpty()) {</span>
+<span class="nc bnc" id="L538" title="All 2 branches missed.">            if (drawCard.possibleRank == PossibleRank.King) {</span>
+<span class="nc" id="L539">              return true;</span>
+            }
+          } else {
+<span class="nc" id="L542">            ValueCard topCard = pile.get(pile.size() - 1);</span>
+<span class="nc bnc" id="L543" title="All 2 branches missed.">            if (drawCard.possibleRank.getNumber() == topCard.possibleRank.getNumber() - 1</span>
+<span class="nc bnc" id="L544" title="All 2 branches missed.">                &amp;&amp; oppositeColorCheck(drawCard.possibleSuits.getSymbol(),</span>
+<span class="nc" id="L545">                topCard.possibleSuits.getSymbol())) {</span>
+<span class="nc" id="L546">              return true;</span>
+            }
+          }
+<span class="nc" id="L549">        }</span>
+      }
+    }
+<span class="nc bnc" id="L552" title="All 2 branches missed.">    for (ValueCard drawCard : drawDeck) {</span>
+<span class="nc bnc" id="L553" title="All 2 branches missed.">      for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L554" title="All 2 branches missed.">        if (canPlaceFoundationCheck(drawCard, foundation)) {</span>
+<span class="nc" id="L555">          return true;</span>
+        }
+<span class="nc" id="L557">      }</span>
+<span class="nc bnc" id="L558" title="All 2 branches missed.">      for (List&lt;ValueCard&gt; pile : piles) {</span>
+<span class="nc bnc" id="L559" title="All 2 branches missed.">        if (pile.isEmpty()) {</span>
+<span class="nc bnc" id="L560" title="All 2 branches missed.">          if (drawCard.possibleRank == PossibleRank.King) {</span>
+<span class="nc" id="L561">            return true;</span>
+          }
+        } else {
+<span class="nc" id="L564">          ValueCard topCard = pile.get(pile.size() - 1);</span>
+<span class="nc bnc" id="L565" title="All 2 branches missed.">          if (drawCard.possibleRank.getNumber() == topCard.possibleRank.getNumber() - 1</span>
+<span class="nc bnc" id="L566" title="All 2 branches missed.">              &amp;&amp; oppositeColorCheck(drawCard.possibleSuits.getSymbol(),</span>
+<span class="nc" id="L567">              topCard.possibleSuits.getSymbol())) {</span>
+<span class="nc" id="L568">            return true;</span>
+          }
+        }
+<span class="nc" id="L571">      }</span>
+<span class="nc" id="L572">    }</span>
+<span class="nc" id="L573">    return false;</span>
+  }
+
+  /**
+   * Return the current score, which is the sum of the values of the topmost cards
+   * in the foundation piles.
+   *
+   * @return the score
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public int getScore() throws IllegalStateException {
+<span class="nc" id="L585">    gameInProgress();</span>
+<span class="nc" id="L586">    int score = 0;</span>
+<span class="nc bnc" id="L587" title="All 2 branches missed.">    for (List&lt;ValueCard&gt; cards : foundations) {</span>
+<span class="nc" id="L588">      score += cards.size();</span>
+<span class="nc" id="L589">    }</span>
+<span class="nc" id="L590">    return score;</span>
+  }
+
+  /**
+   * Returns the number of cards in the specified pile.
+   *
+   * @param pileNum the 0-based index (from the left) of the pile
+   * @return the number of cards in the specified pile
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if pile number is invalid
+   */
+  @Override
+  public int getPileHeight(int pileNum) throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L603">    gameInProgress();</span>
+<span class="nc" id="L604">    paramLessCheck(pileNum, 0);</span>
+<span class="nc" id="L605">    paramLessEqualCheck(piles.size(), pileNum);</span>
+<span class="nc" id="L606">    return piles.get(pileNum).size();</span>
+  }
+
+  /**
+   * Returns the card at the specified coordinates, if it is visible.
+   *
+   * @param pileNum column of the desired card (0-indexed from the left)
+   * @param card    row of the desired card (0-indexed from the top)
+   * @return the card at the given position
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if the coordinates are invalid
+   */
+  @Override
+  public ValueCard getCardAt(int pileNum, int card)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L621">    gameInProgress();</span>
+<span class="nc" id="L622">    paramLessCheck(pileNum, 0);</span>
+<span class="nc" id="L623">    paramLessEqualCheck(piles.size(), pileNum);</span>
+<span class="nc" id="L624">    List&lt;ValueCard&gt; pile = piles.get(pileNum);</span>
+<span class="nc" id="L625">    paramLessCheck(card, 0);</span>
+<span class="nc" id="L626">    paramLessEqualCheck(pile.size(), card);</span>
+<span class="nc bnc" id="L627" title="All 2 branches missed.">    if (!isCardVisible(pileNum, card)) {</span>
+<span class="nc" id="L628">      throw new IllegalArgumentException(&quot;IllegalArgumentException&quot;);</span>
+    }
+<span class="nc" id="L630">    return pile.get(card);</span>
+  }
+
+  /**
+   * Returns the card at the top of the specified foundation pile.
+   *
+   * @param foundationPile 0-based index (from the left) of the foundation pile
+   * @return the card at the given position, or null if no card is there
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if the foundation pile number is invalid
+   */
+  @Override
+  public ValueCard getCardAt(int foundationPile)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L644">    gameInProgress();</span>
+<span class="nc" id="L645">    paramLessCheck(foundationPile, 0);</span>
+<span class="nc" id="L646">    paramLessEqualCheck(foundations.size(), foundationPile);</span>
+<span class="nc" id="L647">    List&lt;ValueCard&gt; foundation = foundations.get(foundationPile);</span>
+<span class="nc bnc" id="L648" title="All 2 branches missed.">    if (foundation.isEmpty()) {</span>
+<span class="nc" id="L649">      return null;</span>
+    }
+<span class="nc" id="L651">    return foundation.get(foundation.size() - 1);</span>
+  }
+
+  /**
+   * Returns whether the card at the specified coordinates is face-up or not.
+   *
+   * @param pileNum column of the desired card (0-indexed from the left)
+   * @param card    row of the desired card (0-indexed from the top)
+   * @return whether the card at the given position is face-up or not
+   * @throws IllegalStateException    if the game hasn't been started yet
+   * @throws IllegalArgumentException if the coordinates are invalid
+   */
+  @Override
+  public boolean isCardVisible(int pileNum, int card)
+      throws IllegalArgumentException, IllegalStateException {
+<span class="nc" id="L666">    gameInProgress();</span>
+<span class="nc" id="L667">    paramLessCheck(pileNum, 0);</span>
+<span class="nc" id="L668">    paramLessEqualCheck(piles.size(), pileNum);</span>
+<span class="nc" id="L669">    List&lt;ValueCard&gt; cards = piles.get(pileNum);</span>
+<span class="nc" id="L670">    paramLessCheck(card, 0);</span>
+<span class="nc" id="L671">    paramLessEqualCheck(cards.size(), card);</span>
+<span class="nc bnc" id="L672" title="All 2 branches missed.">    return (card == cards.size() - 1);</span>
+  }
+
+  /**
+   * Returns the currently available draw cards.
+   * There should be at most {@link KlondikeModel#getNumDraw} cards (the number
+   * specified when the game started) -- there may be fewer, if cards have been removed.
+   * If any user modifies the resulting list, there should be no effect on
+   * the model.
+   *
+   * @return the ordered list of available draw cards
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public List&lt;ValueCard&gt; getDrawCards() throws IllegalStateException {
+<span class="nc" id="L687">    gameInProgress();</span>
+<span class="nc" id="L688">    return new ArrayList&lt;&gt;(hand);</span>
+  }
+
+  /**
+   * Return the number of foundation piles in this game.
+   *
+   * @return the number of foundation piles
+   * @throws IllegalStateException if the game hasn't been started yet
+   */
+  @Override
+  public int getNumFoundations() throws IllegalStateException {
+<span class="nc" id="L699">    gameInProgress();</span>
+<span class="nc" id="L700">    return foundations.size();</span>
+  }
+
+  /**
+   * Helper method used to check if a card can be placed next on the foundation.
+   * Checks to see if card is ace and same suit.
+   *
+   * @param card       card being used.
+   * @param foundation foundation pile being checked.
+   * @return boolean if card can be placed or not.
+   */
+  private boolean canPlaceFoundationCheck(ValueCard card, List&lt;ValueCard&gt; foundation) {
+<span class="nc bnc" id="L712" title="All 2 branches missed.">    if (foundation.isEmpty()) {</span>
+<span class="nc bnc" id="L713" title="All 2 branches missed.">      return card.possibleRank == PossibleRank.Ace;</span>
+    }
+<span class="nc" id="L715">    ValueCard topCard = foundation.get(foundation.size() - 1);</span>
+<span class="nc bnc" id="L716" title="All 2 branches missed.">    return card.possibleSuits.getSymbol().equals(topCard.possibleSuits.getSymbol())</span>
+<span class="nc bnc" id="L717" title="All 2 branches missed.">        &amp;&amp; card.possibleRank.getNumber() == topCard.possibleRank.getNumber() + 1;</span>
+  }
+
+  /**
+   * Helper method used to check if a card can be placed next on pile.
+   * Checks to see if card is red or black.
+   *
+   * @param suitA string symbol of card 1 (going to be card being placed on pile).
+   * @param suitB string symbol of card 2 (going to be pile card).
+   * @return boolean if card is or is not same color.
+   */
+  private boolean oppositeColorCheck(String suitA, String suitB) {
+<span class="nc bnc" id="L729" title="All 2 branches missed.">    boolean redA = suitA.equals(PossibleSuits.Diamond.getSymbol())</span>
+<span class="nc bnc" id="L730" title="All 2 branches missed.">        || suitA.equals(PossibleSuits.Heart.getSymbol());</span>
+<span class="nc bnc" id="L731" title="All 2 branches missed.">    boolean redB = suitB.equals(PossibleSuits.Diamond.getSymbol())</span>
+<span class="nc bnc" id="L732" title="All 2 branches missed.">        || suitB.equals(PossibleSuits.Heart.getSymbol());</span>
+<span class="nc bnc" id="L733" title="All 2 branches missed.">    return redA != redB;</span>
+  }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

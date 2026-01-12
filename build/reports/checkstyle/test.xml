@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<checkstyle version="10.23.1">
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\KlondikeControllerTest.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\KlondikeModelTests.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\KlondikeTextualViewTests.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\mocks\FirstMock.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\mocks\IllegalArgumentMock.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\mocks\IllegalStateMock.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\mocks\MockCard.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\mocks\OverNoWinMock.java">
+</file>
+<file name="C:\Users\sucos\fundies2\OOD\f25-hw04-EdgarParra565\src\test\java\klondike\mocks\WinCheckMock.java">
+</file>
+</checkstyle>

@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WhiteheadKlondike.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">easygo</a> &gt; <a href="index.source.html" class="el_package">klondike.model.hw04</a> &gt; <span class="el_source">WhiteheadKlondike.java</span></div><h1>WhiteheadKlondike.java</h1><pre class="source lang-java linenums">package klondike.model.hw04;
+
+import java.util.ArrayList;
+import java.util.List;
+import klondike.model.hw02.PossibleRank;
+
+/**
+ * A class that implements the KlondikeModel interface with ValueCard type objects.
+ * WhiteheadKlondike provides functions that would allow one to play a game of solitaire.
+ * ValueCard type for the implementation.
+ * Changed isCardVisible, movePile, and moveDraw to conform to game using new methods
+ * given in abstract class.
+ */
+public class WhiteheadKlondike extends AbstractKlondike {
+
+  /**
+   * Constructor that sets the fields.
+   */
+<span class="fc" id="L19">  public WhiteheadKlondike() {</span>
+<span class="fc" id="L20">    this.deck = new ArrayList&lt;ValueCard&gt;();</span>
+<span class="fc" id="L21">    this.piles = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L22">    this.foundations = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L23">    this.hand = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L24">    this.drawDeck = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L25">    this.gameStart = false;</span>
+<span class="fc" id="L26">    this.numDraw = 0;</span>
+<span class="fc" id="L27">  }</span>
+
+  @Override
+  protected boolean validBuild(ValueCard move, ValueCard dest) {
+<span class="fc bfc" id="L31" title="All 2 branches covered.">    return (!oppositeColorCheck(move.possibleSuits.getSymbol(), dest.possibleSuits.getSymbol()))</span>
+<span class="fc bfc" id="L32" title="All 2 branches covered.">        &amp;&amp; (move.possibleRank.getNumber() == dest.possibleRank.getNumber() - 1);</span>
+  }
+
+  @Override
+  protected boolean canMoveToEmpty(ValueCard card) {
+<span class="fc" id="L37">    return true;</span>
+  }
+
+  @Override
+  protected boolean moveSameSuit(List&lt;ValueCard&gt; move) {
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">    if (move.isEmpty()) {</span>
+<span class="nc" id="L43">      return false;</span>
+    }
+<span class="fc" id="L45">    String suit = move.get(0).possibleSuits.getSymbol();</span>
+<span class="fc bfc" id="L46" title="All 2 branches covered.">    for (ValueCard card : move) {</span>
+<span class="fc bfc" id="L47" title="All 2 branches covered.">      if (!card.possibleSuits.getSymbol().equals(suit)) {</span>
+<span class="fc" id="L48">        return false;</span>
+      }
+<span class="fc" id="L50">    }</span>
+<span class="fc" id="L51">    return true;</span>
+  }
+
+  @Override
+  public boolean isCardVisible(int pileNum, int card) {
+<span class="fc" id="L56">    gameInProgress();</span>
+<span class="fc" id="L57">    paramLessCheck(pileNum, 0);</span>
+<span class="fc" id="L58">    paramLessEqualCheck(piles.size(), pileNum);</span>
+<span class="fc" id="L59">    List&lt;ValueCard&gt; cards = piles.get(pileNum);</span>
+<span class="fc" id="L60">    paramLessCheck(card, 0);</span>
+<span class="fc" id="L61">    paramLessEqualCheck(cards.size(), card);</span>
+<span class="fc" id="L62">    return true;</span>
+  }
+
+  @Override
+  public void movePile(int srcPile, int numCards, int destPile) {
+<span class="fc" id="L67">    gameInProgress();</span>
+<span class="fc" id="L68">    paramLessCheck(srcPile, 0);</span>
+<span class="fc" id="L69">    paramLessEqualCheck(piles.size(), srcPile);</span>
+<span class="fc" id="L70">    paramLessCheck(destPile, 0);</span>
+<span class="fc" id="L71">    paramLessEqualCheck(piles.size(), destPile);</span>
+<span class="pc bpc" id="L72" title="1 of 2 branches missed.">    if (srcPile == destPile) {</span>
+<span class="nc" id="L73">      throw new IllegalArgumentException(&quot;Illegal Argument Exception&quot;);</span>
+    }
+<span class="fc" id="L75">    paramLessCheck(numCards, 1);</span>
+<span class="fc" id="L76">    List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+<span class="fc" id="L77">    List&lt;ValueCard&gt; dest = piles.get(destPile);</span>
+<span class="fc" id="L78">    paramLessCheck(src.size(), numCards);</span>
+<span class="fc" id="L79">    List&lt;ValueCard&gt; cardsMove = new ArrayList&lt;&gt;(src.subList(src.size() - numCards, src.size()));</span>
+<span class="fc bfc" id="L80" title="All 2 branches covered.">    if (!moveSameSuit(cardsMove)) {</span>
+<span class="fc" id="L81">      throw new IllegalStateException(&quot;Illegal State Exception&quot;);</span>
+    }
+<span class="fc" id="L83">    ValueCard srcCard = cardsMove.get(0);</span>
+<span class="fc bfc" id="L84" title="All 2 branches covered.">    if (dest.isEmpty()) {</span>
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">      if (!canMoveToEmpty(srcCard)) {</span>
+<span class="nc" id="L86">        throw new IllegalStateException(&quot;Only King can be moved&quot;);</span>
+      }
+    } else {
+<span class="fc" id="L89">      ValueCard destCard = dest.get(dest.size() - 1);</span>
+<span class="fc bfc" id="L90" title="All 2 branches covered.">      if (!validBuild(srcCard, destCard)) {</span>
+<span class="fc" id="L91">        throw new IllegalStateException(&quot;Cannot place card&quot;);</span>
+      }
+    }
+    //List&lt;ValueCard&gt; card = new ArrayList&lt;&gt;(src.subList(src.size() - numCards, src.size()));
+<span class="fc" id="L95">    dest.addAll(cardsMove);</span>
+<span class="fc bfc" id="L96" title="All 2 branches covered.">    for (int value = 0; value &lt; numCards; value++) {</span>
+<span class="fc" id="L97">      src.remove(src.size() - 1);</span>
+    }
+<span class="fc" id="L99">  }</span>
+
+  @Override
+  public void moveDraw(int destPile) {
+<span class="fc" id="L103">    gameInProgress();</span>
+<span class="fc" id="L104">    emptyCheck(hand);</span>
+<span class="fc" id="L105">    paramLessCheck(destPile, 0);</span>
+<span class="fc" id="L106">    paramLessEqualCheck(piles.size(), destPile);</span>
+<span class="fc" id="L107">    ValueCard card = (ValueCard) hand.get(0);</span>
+<span class="fc" id="L108">    List&lt;ValueCard&gt; dest = piles.get(destPile);</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">    if (dest.isEmpty()) {</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">      if (!canMoveToEmpty(card)) {</span>
+<span class="nc" id="L111">        throw new IllegalStateException(&quot;King only card that can be moved&quot;);</span>
+      }
+    } else {
+<span class="fc" id="L114">      ValueCard topCard = dest.get(dest.size() - 1);</span>
+<span class="pc bpc" id="L115" title="1 of 2 branches missed.">      if (!validBuild(card, topCard)) {</span>
+<span class="fc" id="L116">        throw new IllegalStateException(&quot;InvalidState&quot;);</span>
+      }
+    }
+<span class="nc" id="L119">    dest.add(card);</span>
+<span class="nc" id="L120">    hand.remove(0);</span>
+<span class="nc" id="L121">    addCardHand();</span>
+<span class="nc" id="L122">  }</span>
+
+  @Override
+  protected boolean availableMove() {
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    for (int srcPile = 0; srcPile &lt; piles.size(); srcPile++) {</span>
+<span class="nc" id="L127">      List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+<span class="nc bnc" id="L128" title="All 2 branches missed.">      if (src.isEmpty()) {</span>
+<span class="nc" id="L129">        continue;</span>
+      }
+<span class="nc bnc" id="L131" title="All 2 branches missed.">      for (int index = 0; index &lt; src.size(); index++) {</span>
+<span class="nc" id="L132">        ValueCard card = src.get(index);</span>
+        //ValueCard card = src.get(src.size() - 1);
+<span class="nc bnc" id="L134" title="All 2 branches missed.">        for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">          if (canPlaceFoundationCheck(card, foundation)) {</span>
+            /*
+            List&lt;ValueCard&gt; cardMove = new ArrayList&lt;&gt;(src.subList(index, src.size()));
+            if (moveSameSuit(cardMove)) {
+            }
+             */
+<span class="nc" id="L141">            return true;</span>
+          }
+<span class="nc" id="L143">        }</span>
+      }
+    }
+<span class="nc bnc" id="L146" title="All 2 branches missed.">    for (int srcPile = 0; srcPile &lt; piles.size(); srcPile++) {</span>
+<span class="nc" id="L147">      List&lt;ValueCard&gt; src = piles.get(srcPile);</span>
+<span class="nc bnc" id="L148" title="All 2 branches missed.">      if (src.isEmpty()) {</span>
+<span class="nc" id="L149">        continue;</span>
+      }
+<span class="nc bnc" id="L151" title="All 2 branches missed.">      for (int index = 0; index &lt; src.size(); index++) {</span>
+<span class="nc" id="L152">        ValueCard card = src.get(index);</span>
+<span class="nc" id="L153">        List&lt;ValueCard&gt; cardMove = new ArrayList&lt;&gt;(src.subList(index, src.size()));</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (!moveSameSuit(cardMove)) {</span>
+<span class="nc" id="L155">          continue;</span>
+        }
+        //ValueCard card = src.get(src.size() - 1);
+<span class="nc bnc" id="L158" title="All 2 branches missed.">        for (int destPile = 0; destPile &lt; piles.size(); destPile++) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">          if (srcPile == destPile) {</span>
+<span class="nc" id="L160">            continue;</span>
+          }
+<span class="nc" id="L162">          List&lt;ValueCard&gt; dest = piles.get(destPile);</span>
+<span class="nc bnc" id="L163" title="All 2 branches missed.">          if (dest.isEmpty()) {</span>
+<span class="nc bnc" id="L164" title="All 2 branches missed.">            if (canMoveToEmpty(card)) {</span>
+<span class="nc" id="L165">              return true;</span>
+            }
+          } else {
+<span class="nc" id="L168">            ValueCard destCard = dest.get(dest.size() - 1);</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">            if (validBuild(card, destCard)) {</span>
+<span class="nc" id="L170">              return true;</span>
+            }
+          }
+        }
+      }
+    }
+<span class="nc bnc" id="L176" title="All 2 branches missed.">    if (handDeckChecker()) {</span>
+<span class="nc" id="L177">      return true;</span>
+    }
+<span class="nc" id="L179">    return false;</span>
+  }
+
+  @Override
+  protected boolean handDeckChecker() {
+<span class="nc bnc" id="L184" title="All 2 branches missed.">    if (!hand.isEmpty()) {</span>
+<span class="nc bnc" id="L185" title="All 2 branches missed.">      for (int hands = 0; hands &lt; hand.size(); hands++) {</span>
+<span class="nc" id="L186">        ValueCard drawCard = (ValueCard) hand.get(hands);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">          if (canPlaceFoundationCheck(drawCard, foundation)) {</span>
+<span class="nc" id="L189">            return true;</span>
+          }
+<span class="nc" id="L191">        }</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">        for (List&lt;ValueCard&gt; pile : piles) {</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">          if (pile.isEmpty()) {</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">            if (canMoveToEmpty(drawCard)) {</span>
+<span class="nc" id="L195">              return true;</span>
+            }
+          } else {
+<span class="nc" id="L198">            ValueCard topCard = pile.get(pile.size() - 1);</span>
+<span class="nc bnc" id="L199" title="All 2 branches missed.">            if (validBuild(drawCard, topCard)) {</span>
+<span class="nc" id="L200">              return true;</span>
+            }
+          }
+<span class="nc" id="L203">        }</span>
+      }
+    }
+<span class="nc bnc" id="L206" title="All 2 branches missed.">    for (ValueCard drawCard : drawDeck) {</span>
+<span class="nc bnc" id="L207" title="All 2 branches missed.">      for (List&lt;ValueCard&gt; foundation : foundations) {</span>
+<span class="nc bnc" id="L208" title="All 2 branches missed.">        if (canPlaceFoundationCheck(drawCard, foundation)) {</span>
+<span class="nc" id="L209">          return true;</span>
+        }
+<span class="nc" id="L211">      }</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">      for (List&lt;ValueCard&gt; pile : piles) {</span>
+<span class="nc bnc" id="L213" title="All 2 branches missed.">        if (pile.isEmpty()) {</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">          if (canMoveToEmpty(drawCard)) {</span>
+<span class="nc" id="L215">            return true;</span>
+          }
+        } else {
+<span class="nc" id="L218">          ValueCard topCard = pile.get(pile.size() - 1);</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">          if (validBuild(drawCard, topCard)) {</span>
+<span class="nc" id="L220">            return true;</span>
+          }
+        }
+<span class="nc" id="L223">      }</span>
+<span class="nc" id="L224">    }</span>
+<span class="nc" id="L225">    return false;</span>
+  }
+
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
